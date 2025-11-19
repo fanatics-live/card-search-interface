@@ -237,33 +237,33 @@ function buildAlgoliaFilter(pill) {
 }
 
 async function fetchActualCounts(query, pills) {
-  const pillsWithCounts = []
+  // Parallelize all count fetching for better performance
+  const pillsWithCounts = await Promise.all(
+    pills.map(async (pill) => {
+      try {
+        const filter = buildAlgoliaFilter(pill)
 
-  for (const pill of pills) {
-    try {
-      const filter = buildAlgoliaFilter(pill)
-
-      if (pill.filter.operator === 'contains') {
-        const keywordQuery = `${query} ${pill.filter.value}`
-        const result = await index.search(keywordQuery, {
-          hitsPerPage: 0,
-          distinct: true,
-        })
-        pillsWithCounts.push({ ...pill, count: result.nbHits })
-      } else {
-        const result = await index.search(query, {
-          filters: filter,
-          hitsPerPage: 0,
-          distinct: true,
-        })
-        pillsWithCounts.push({ ...pill, count: result.nbHits })
+        if (pill.filter.operator === 'contains') {
+          const keywordQuery = `${query} ${pill.filter.value}`
+          const result = await index.search(keywordQuery, {
+            hitsPerPage: 0,
+            distinct: true,
+          })
+          return { ...pill, count: result.nbHits }
+        } else {
+          const result = await index.search(query, {
+            filters: filter,
+            hitsPerPage: 0,
+            distinct: true,
+          })
+          return { ...pill, count: result.nbHits }
+        }
+      } catch (error) {
+        console.error(`Error fetching count for pill ${pill.id}:`, error.message)
+        return { ...pill, count: 0 }
       }
-
-      await new Promise((resolve) => setTimeout(resolve, 50))
-    } catch (error) {
-      console.error(`Error fetching count for pill ${pill.id}:`, error.message)
-    }
-  }
+    })
+  )
 
   const keywordPills = pillsWithCounts.filter((pill) => pill.filter.operator === 'contains' && pill.count >= 5)
   const otherPills = pillsWithCounts.filter((pill) => pill.filter.operator !== 'contains' && pill.count >= 5)

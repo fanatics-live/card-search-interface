@@ -485,47 +485,44 @@ function buildAlgoliaFilter(pill) {
  * Fetch actual counts for pills (matching frontend config) - with rate limiting
  */
 async function fetchActualCounts(query, pills) {
-  const pillsWithCounts = []
+  // Parallelize all count fetching for better performance
+  const pillsWithCounts = await Promise.all(
+    pills.map(async (pill) => {
+      try {
+        const filter = buildAlgoliaFilter(pill)
 
-  // Process pills sequentially to avoid rate limiting (slower but more reliable)
-  for (const pill of pills) {
-    try {
-      const filter = buildAlgoliaFilter(pill)
+        // Handle keyword pills (title search) differently
+        if (pill.filter.operator === 'contains') {
+          // For keywords, add the keyword to the search query
+          const keywordQuery = `${query} ${pill.filter.value}`
+          const result = await index.search(keywordQuery, {
+            hitsPerPage: 0,
+            distinct: true,
+          })
 
-      // Handle keyword pills (title search) differently
-      if (pill.filter.operator === 'contains') {
-        // For keywords, add the keyword to the search query
-        const keywordQuery = `${query} ${pill.filter.value}`
-        const result = await index.search(keywordQuery, {
-          hitsPerPage: 0,
-          distinct: true,
-        })
+          return {
+            ...pill,
+            count: result.nbHits,
+          }
+        } else {
+          // For regular filters
+          const result = await index.search(query, {
+            filters: filter,
+            hitsPerPage: 0,
+            distinct: true, // CRITICAL: Must match frontend SEARCH_CONFIG
+          })
 
-        pillsWithCounts.push({
-          ...pill,
-          count: result.nbHits,
-        })
-      } else {
-        // For regular filters
-        const result = await index.search(query, {
-          filters: filter,
-          hitsPerPage: 0,
-          distinct: true, // CRITICAL: Must match frontend SEARCH_CONFIG
-        })
-
-        pillsWithCounts.push({
-          ...pill,
-          count: result.nbHits,
-        })
+          return {
+            ...pill,
+            count: result.nbHits,
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching count for pill ${pill.id}:`, error.message)
+        return { ...pill, count: 0 }
       }
-
-      // Small delay to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 50))
-    } catch (error) {
-      console.error(`Error fetching count for pill ${pill.id}:`, error.message)
-      // Skip pills that error
-    }
-  }
+    })
+  )
 
   // Separate keywords from other pills
   const keywordPills = pillsWithCounts.filter((pill) => pill.filter.operator === 'contains' && pill.count >= 5)
