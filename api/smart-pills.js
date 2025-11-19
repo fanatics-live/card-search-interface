@@ -3,13 +3,15 @@
 
 const algoliasearch = require('algoliasearch')
 
-// Initialize Algolia client
-const ALGOLIA_APP_ID = process.env.VITE_ALGOLIA_APP_ID
-const ALGOLIA_SEARCH_API_KEY = process.env.VITE_ALGOLIA_SEARCH_API_KEY
-const ALGOLIA_INDEX_NAME = process.env.VITE_ALGOLIA_INDEX_NAME || 'prod_item_state_v1'
+// Initialize Algolia client - trim values to remove any newlines
+const ALGOLIA_APP_ID = (process.env.VITE_ALGOLIA_APP_ID || '').trim()
+const ALGOLIA_SEARCH_API_KEY = (process.env.VITE_ALGOLIA_SEARCH_API_KEY || '').trim()
+const ALGOLIA_INDEX_NAME = (process.env.VITE_ALGOLIA_INDEX_NAME || 'prod_item_state_v1').trim()
 
 if (!ALGOLIA_APP_ID || !ALGOLIA_SEARCH_API_KEY) {
   console.error('Missing Algolia configuration')
+  console.error('APP_ID length:', ALGOLIA_APP_ID?.length, 'has newline:', ALGOLIA_APP_ID?.includes('\n'))
+  console.error('API_KEY length:', ALGOLIA_SEARCH_API_KEY?.length, 'has newline:', ALGOLIA_SEARCH_API_KEY?.includes('\n'))
 }
 
 const client = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY)

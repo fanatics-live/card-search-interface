@@ -30,7 +30,8 @@
       "Bash(vercel:*)",
       "WebFetch(domain:card-search-interface.vercel.app)",
       "Bash(git rm:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(printf:*)"
     ],
     "deny": [],
     "ask": []
