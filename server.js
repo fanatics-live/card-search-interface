@@ -3,14 +3,39 @@ import cors from 'cors'
 import algoliasearch from 'algoliasearch'
 import { createClient } from 'redis'
 import dotenv from 'dotenv'
+import rateLimit from 'express-rate-limit'
+import { CARD_MANUFACTURERS as CARD_MANUFACTURERS_LIST } from './shared-constants.js'
 
 dotenv.config({ path: '.env.local' })
 
 const app = express()
 const PORT = process.env.PORT || 3001
 
-// Middleware
-app.use(cors())
+// Security: Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+// Apply rate limiting to all requests
+app.use(limiter)
+
+// Security: Restrict CORS
+const allowedOrigins = [process.env.VITE_APP_URL || 'http://localhost:5173', 'http://localhost:3000']
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.'
+      return callback(new Error(msg), false)
+    }
+    return callback(null, true)
+  }
+}))
+
 app.use(express.json())
 
 // Algolia client
@@ -46,51 +71,7 @@ if (process.env.REDIS_URL) {
 /**
  * Known card manufacturers/brands (not player names)
  */
-const CARD_MANUFACTURERS = new Set([
-  'Topps',
-  'Panini',
-  'Upper Deck',
-  'Bowman',
-  'Fleer',
-  'Donruss',
-  'Score',
-  'Leaf',
-  'Press Pass',
-  'Sage',
-  'SP Authentic',
-  'Stadium Club',
-  'Finest',
-  'Chrome',
-  'Prizm',
-  'Select',
-  'Optic',
-  'Mosaic',
-  'Contenders',
-  'National Treasures',
-  'Immaculate',
-  'SP',
-  'UD',
-  'Skybox',
-  'Pacific',
-  'Playoff',
-  'Pro Set',
-  'Action Packed',
-  'Classic',
-  'GameDay',
-  'Pinnacle',
-  'Revolution',
-  'Ultra',
-  'Collector\'s Choice',
-  'Stadium Club Chrome',
-  'Bowman Chrome',
-  'Topps Chrome',
-  'Panini Prizm',
-  'Panini Select',
-  'Pokemon',
-  'Yu-Gi-Oh!',
-  'Magic: The Gathering',
-  'MTG',
-])
+const CARD_MANUFACTURERS = new Set(CARD_MANUFACTURERS_LIST)
 
 /**
  * Extract features from search results
@@ -259,6 +240,7 @@ function getKeywordIcon(keyword) {
     '/5': '💫',
     '/1': '🏆',
     '1/1': '🏆',
+    '1/1': '🏆',
   }
   return icons[keyword] || '🎯'
 }
@@ -359,6 +341,7 @@ function featuresToPills(features, totalResults, sampleSize) {
         color: 'green',
         score: count / sampleSize,
       })
+      pills[pills.length - 1].filterString = buildAlgoliaFilter(pills[pills.length - 1])
     }
   })
 
@@ -374,6 +357,7 @@ function featuresToPills(features, totalResults, sampleSize) {
         color: 'green',
         score: count / sampleSize,
       })
+      pills[pills.length - 1].filterString = buildAlgoliaFilter(pills[pills.length - 1])
     }
   })
 
@@ -389,6 +373,7 @@ function featuresToPills(features, totalResults, sampleSize) {
         color: getKeywordColor(keyword),
         score: count / sampleSize,
       })
+      pills[pills.length - 1].filterString = buildAlgoliaFilter(pills[pills.length - 1])
     }
   })
 
@@ -408,6 +393,7 @@ function featuresToPills(features, totalResults, sampleSize) {
         color: 'gray',
         score: count / sampleSize,
       })
+      pills[pills.length - 1].filterString = buildAlgoliaFilter(pills[pills.length - 1])
     }
   })
 
@@ -427,6 +413,7 @@ function featuresToPills(features, totalResults, sampleSize) {
         color: 'blue',
         score: count / sampleSize,
       })
+      pills[pills.length - 1].filterString = buildAlgoliaFilter(pills[pills.length - 1])
     }
   })
 
@@ -442,6 +429,7 @@ function featuresToPills(features, totalResults, sampleSize) {
         color: 'amber',
         score: count / sampleSize,
       })
+      pills[pills.length - 1].filterString = buildAlgoliaFilter(pills[pills.length - 1])
     }
   })
 
@@ -482,13 +470,11 @@ function buildAlgoliaFilter(pill) {
 }
 
 /**
- * Fetch actual counts for pills (matching frontend config) - with rate limiting
+ * Fetch actual counts for pills (matching frontend config) - parallelized
  */
 async function fetchActualCounts(query, pills) {
-  const pillsWithCounts = []
-
-  // Process pills sequentially to avoid rate limiting (slower but more reliable)
-  for (const pill of pills) {
+  // Process pills in parallel
+  const pillsWithCounts = await Promise.all(pills.map(async (pill) => {
     try {
       const filter = buildAlgoliaFilter(pill)
 
@@ -501,10 +487,10 @@ async function fetchActualCounts(query, pills) {
           distinct: true,
         })
 
-        pillsWithCounts.push({
+        return {
           ...pill,
           count: result.nbHits,
-        })
+        }
       } else {
         // For regular filters
         const result = await index.search(query, {
@@ -513,23 +499,23 @@ async function fetchActualCounts(query, pills) {
           distinct: true, // CRITICAL: Must match frontend SEARCH_CONFIG
         })
 
-        pillsWithCounts.push({
+        return {
           ...pill,
           count: result.nbHits,
-        })
+        }
       }
-
-      // Small delay to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 50))
     } catch (error) {
       console.error(`Error fetching count for pill ${pill.id}:`, error.message)
-      // Skip pills that error
+      return null // Return null on error to filter out later
     }
-  }
+  }))
+
+  // Filter out nulls (failed fetches)
+  const validPills = pillsWithCounts.filter(p => p !== null)
 
   // Separate keywords from other pills
-  const keywordPills = pillsWithCounts.filter((pill) => pill.filter.operator === 'contains' && pill.count >= 5)
-  const otherPills = pillsWithCounts.filter((pill) => pill.filter.operator !== 'contains' && pill.count >= 5)
+  const keywordPills = validPills.filter((pill) => pill.filter.operator === 'contains' && pill.count >= 5)
+  const otherPills = validPills.filter((pill) => pill.filter.operator !== 'contains' && pill.count >= 5)
 
   // Sort each by score
   keywordPills.sort((a, b) => (b.score || 0) - (a.score || 0))
@@ -599,10 +585,8 @@ async function generateDefaultPills() {
     { id: 'price-1000plus', label: '$1000+', icon: '💰', attribute: 'currentPrice', value: '$1000+', operator: 'range', color: 'amber' },
   ]
 
-  const pillsWithCounts = []
-
-  // Fetch actual counts for each default pill
-  for (const template of defaultPillTemplates) {
+  // Fetch actual counts for each default pill - parallelized
+  const pillsWithCounts = await Promise.all(defaultPillTemplates.map(async (template) => {
     try {
       const pill = {
         id: template.id,
@@ -616,28 +600,27 @@ async function generateDefaultPills() {
         },
         score: 1,
       }
+      pill.filterString = buildAlgoliaFilter(pill)
 
-      const filter = buildAlgoliaFilter(pill)
+      const filter = pill.filterString
       const result = await index.search('', {
         filters: filter,
         hitsPerPage: 0,
         distinct: true,
       })
 
-      pillsWithCounts.push({
+      return {
         ...pill,
         count: result.nbHits,
-      })
-
-      // Small delay to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      }
     } catch (error) {
       console.error(`Error fetching count for default pill ${template.id}:`, error.message)
+      return null
     }
-  }
+  }))
 
-  // Filter out pills with 0 results and sort by count
-  return pillsWithCounts.filter((pill) => pill.count > 0).sort((a, b) => b.count - a.count)
+  // Filter out pills with 0 results or errors and sort by count
+  return pillsWithCounts.filter((pill) => pill && pill.count > 0).sort((a, b) => b.count - a.count)
 }
 
 /**

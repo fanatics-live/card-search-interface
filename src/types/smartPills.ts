@@ -4,6 +4,8 @@ export interface SmartPill {
   id: string
   label: string
   icon?: string
+  score?: number
+  filterString?: string | null
   count?: number // Number of results matching this filter
   filter: {
     attribute: string // Algolia attribute to filter on

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { HeartIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline'
+import DOMPurify from 'dompurify'
 import { AlgoliaCardHit } from '@/types/algolia'
 import { CardImage } from '@/components/cards/CardImage'
 import { GradeBadge } from '@/components/cards/GradeBadge'
@@ -76,14 +77,14 @@ export function HitCard({ hit, index = 0 }: HitCardProps) {
             <h3
               className="text-sm font-semibold text-gray-900 line-clamp-2 leading-tight"
               dangerouslySetInnerHTML={{
-                __html: hit._highlightResult?.title?.value || hit.title,
+                __html: DOMPurify.sanitize(hit._highlightResult?.title?.value || hit.title || ''),
               }}
             />
             {hit.subtitle && (
               <p
                 className="text-xs text-gray-600 mt-1 line-clamp-1"
                 dangerouslySetInnerHTML={{
-                  __html: hit._highlightResult?.subtitle?.value || hit.subtitle,
+                  __html: DOMPurify.sanitize(hit._highlightResult?.subtitle?.value || hit.subtitle || ''),
                 }}
               />
             )}
