@@ -135,8 +135,9 @@ export function SmartPills({ onFiltersChange }: SmartPillsProps) {
 
     // Get sidebar filters from results (refinement lists)
     const sidebarFilters: string[] = []
-    if (results?.params) {
-      const filterMatch = String(results.params).match(/filters=([^&]*)/)
+    const resultsParams = (results as any)?.params
+    if (resultsParams) {
+      const filterMatch = String(resultsParams).match(/filters=([^&]*)/)
       if (filterMatch?.[1]) {
         const decodedFilter = decodeURIComponent(filterMatch[1])
         // Extract sidebar filters (they're in the actual results but not in our smart pill filters)
@@ -204,7 +205,7 @@ export function SmartPills({ onFiltersChange }: SmartPillsProps) {
           console.log(`  Fetching count for ${p.label}: filter="${combinedFilter}", distinct=true`)
 
           const result = await index.search(baseQuery, {
-            filters: combinedFilter,
+            filters: combinedFilter || undefined,
             hitsPerPage: 0,
             distinct: true, // Must match SEARCH_CONFIG
           })

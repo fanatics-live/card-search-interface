@@ -8,7 +8,7 @@ export interface SmartPill {
   filter: {
     attribute: string // Algolia attribute to filter on
     value: string | number | boolean
-    operator?: '=' | '>' | '<' | '>=' | '<=' | 'range'
+    operator?: '=' | '>' | '<' | '>=' | '<=' | 'range' | 'contains'
   }
   color?: 'blue' | 'green' | 'purple' | 'amber' | 'red' | 'gray'
   isActive?: boolean

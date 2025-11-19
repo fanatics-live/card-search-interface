@@ -34,7 +34,7 @@ export function CardImage({ src, alt, className, priority = false }: CardImagePr
         }}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        fetchpriority={priority ? 'high' : 'auto'}
+        fetchPriority={priority ? 'high' : 'auto'}
       />
     </div>
   )

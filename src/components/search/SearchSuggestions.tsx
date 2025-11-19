@@ -26,7 +26,6 @@ export function SearchSuggestions({
   isOpen,
   onSuggestionsUpdate,
   highlightedIndex: externalHighlightedIndex = -1,
-  onHighlightChange,
 }: SearchSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([])
@@ -149,8 +148,8 @@ export function SearchSuggestions({
     }
   }, [isOpen, onClose])
 
-  const handleSelect = (selectedQuery: string) => {
-    onSelect(selectedQuery)
+  const handleSelect = (selectedQuery: string, index?: number) => {
+    onSelect(selectedQuery, index)
     onClose()
   }
 

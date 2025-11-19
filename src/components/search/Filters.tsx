@@ -35,7 +35,6 @@ function RefinementList({ attribute, title, limit = 10, searchable = false, tran
   const { items, refine, searchForItems } = useRefinementList({
     attribute,
     limit,
-    searchable,
     transformItems,
   })
 

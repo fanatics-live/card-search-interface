@@ -1,4 +1,3 @@
-import { GradingService } from '@/types/algolia'
 
 /**
  * Get display-friendly grade label

@@ -10,7 +10,6 @@ export function Pagination() {
     isFirstPage,
     isLastPage,
     refine,
-    createURL,
   } = usePagination()
 
   if (nbPages <= 1) {

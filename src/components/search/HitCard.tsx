@@ -5,7 +5,6 @@ import { CardImage } from '@/components/cards/CardImage'
 import { GradeBadge } from '@/components/cards/GradeBadge'
 import { PriceDisplay } from '@/components/cards/PriceDisplay'
 import { ValueBadges } from '@/components/cards/ValueBadges'
-import { cn } from '@/lib/utils/cn'
 
 interface HitCardProps {
   hit: AlgoliaCardHit

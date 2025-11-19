@@ -7,11 +7,11 @@ interface DebugPanelProps {
 
 export function DebugPanel({ currentFilters = '' }: DebugPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const { indexUiState, results } = useInstantSearch()
+  const { results } = useInstantSearch()
   const { query } = useSearchBox()
 
   // Get the ACTUAL filters that Algolia received (includes both smart pills and sidebar filters)
-  const appliedFilters = results?.params || ''
+  const appliedFilters = (results as any)?.params || ''
   const filterMatch = String(appliedFilters).match(/filters=([^&]*)/)
   const decodedFilters = filterMatch?.[1] ? decodeURIComponent(filterMatch[1]) : 'None'
 

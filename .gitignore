@@ -30,3 +30,4 @@ dist-ssr
 
 # Trogon AI internal files
 *.internal.trogonai.md
+.vercel
