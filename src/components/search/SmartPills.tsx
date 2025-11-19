@@ -5,7 +5,7 @@ import { getSmartPillsForQuery } from '@/types/smartPills'
 import type { SmartPill as SmartPillType } from '@/types/smartPills'
 import { searchClient, ALGOLIA_INDEX_NAME } from '@/lib/algolia/client'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 interface SmartPillsProps {
   onFiltersChange?: (filters: string) => void
