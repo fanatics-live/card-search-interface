@@ -9,9 +9,10 @@ const API_URL = import.meta.env.VITE_API_URL || ''
 
 interface SmartPillsProps {
   onFiltersChange?: (filters: string) => void
+  onActivePillsChange?: (activePillIds: string[]) => void
 }
 
-export function SmartPills({ onFiltersChange }: SmartPillsProps) {
+export function SmartPills({ onFiltersChange, onActivePillsChange }: SmartPillsProps) {
   const { query, refine } = useSearchBox()
   const { results } = useInstantSearch()
   const [pills, setPills] = useState<SmartPillType[]>([])
@@ -283,6 +284,11 @@ export function SmartPills({ onFiltersChange }: SmartPillsProps) {
     // Notify parent component of filter changes
     if (onFiltersChange) {
       onFiltersChange(combinedFilters)
+    }
+
+    // Notify parent component of active pill IDs
+    if (onActivePillsChange) {
+      onActivePillsChange(Array.from(newActivePills))
     }
 
     // Update counts on other pills to reflect the current filters

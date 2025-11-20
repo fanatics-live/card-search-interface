@@ -1,3 +1,4 @@
+import React from 'react'
 import { useRefinementList, useClearRefinements } from 'react-instantsearch'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils/cn'
@@ -29,14 +30,23 @@ interface RefinementListProps {
   limit?: number
   searchable?: boolean
   transformItems?: (items: any[]) => any[]
+  onRefinementsChange?: (attribute: string, refinedValues: string[]) => void
 }
 
-function RefinementList({ attribute, title, limit = 10, searchable = false, transformItems }: RefinementListProps) {
+function RefinementList({ attribute, title, limit = 10, searchable = false, transformItems, onRefinementsChange }: RefinementListProps) {
   const { items, refine, searchForItems } = useRefinementList({
     attribute,
     limit,
     transformItems,
   })
+
+  // Notify parent when refinements change
+  React.useEffect(() => {
+    if (onRefinementsChange) {
+      const refinedValues = items.filter(item => item.isRefined).map(item => item.value)
+      onRefinementsChange(attribute, refinedValues)
+    }
+  }, [items, attribute, onRefinementsChange])
 
   if (items.length === 0) return null
 
@@ -78,8 +88,22 @@ function RefinementList({ attribute, title, limit = 10, searchable = false, tran
   )
 }
 
-export function Filters() {
+interface FiltersProps {
+  onRefinementsChange?: (refinements: { [key: string]: string[] }) => void
+}
+
+export function Filters({ onRefinementsChange }: FiltersProps = {}) {
   const { canRefine, refine } = useClearRefinements()
+  const [refinements, setRefinements] = React.useState<{ [key: string]: string[] }>({})
+
+  const handleRefinementChange = React.useCallback((attribute: string, values: string[]) => {
+    setRefinements(prev => {
+      const updated = { ...prev, [attribute]: values }
+      // Notify parent with updated refinements
+      onRefinementsChange?.(updated)
+      return updated
+    })
+  }, [onRefinementsChange])
 
   return (
     <aside className="w-64 flex-shrink-0">
@@ -105,6 +129,7 @@ export function Filters() {
             attribute="status"
             title="Status"
             transformItems={statusTransform}
+            onRefinementsChange={handleRefinementChange}
           />
 
           {/* Marketplace */}
@@ -112,6 +137,7 @@ export function Filters() {
             attribute="marketplace"
             title="Marketplace"
             transformItems={marketplaceTransform}
+            onRefinementsChange={handleRefinementChange}
           />
 
           {/* Grading Service */}
@@ -121,6 +147,7 @@ export function Filters() {
             limit={15}
             searchable={true}
             transformItems={gradingServiceTransform}
+            onRefinementsChange={handleRefinementChange}
           />
         </div>
       </div>

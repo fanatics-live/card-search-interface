@@ -15,6 +15,8 @@ import type { SavedSearch, SavedSearchFilters } from '@/lib/search/savedSearches
 function SearchContent() {
   const [smartPillFilters, setSmartPillFilters] = useState<string>('')
   const [savedSearchesKey, setSavedSearchesKey] = useState(0) // For forcing re-render
+  const [activePillIds, setActivePillIds] = useState<string[]>([])
+  const [sidebarRefinements, setSidebarRefinements] = useState<{ [key: string]: string[] }>({})
   const { refine } = useSearchBox()
 
   const handleSelectSavedSearch = (search: SavedSearch) => {
@@ -34,9 +36,13 @@ function SearchContent() {
   // Build current filters for save functionality
   // Memoize to prevent creating new object reference on every render
   const currentFilters: SavedSearchFilters = useMemo(() => ({
-    smartPills: [], // TODO: Track active smart pill IDs
-    sidebarFilters: {}, // TODO: Track active sidebar filters
-  }), [])
+    smartPills: activePillIds,
+    sidebarFilters: {
+      status: sidebarRefinements.status || [],
+      marketplace: sidebarRefinements.marketplace || [],
+      gradingService: sidebarRefinements.gradingService || [],
+    },
+  }), [activePillIds, sidebarRefinements])
 
   return (
     <>
@@ -70,12 +76,15 @@ function SearchContent() {
           </div>
 
           {/* Smart Pills */}
-          <SmartPills onFiltersChange={setSmartPillFilters} />
+          <SmartPills
+            onFiltersChange={setSmartPillFilters}
+            onActivePillsChange={setActivePillIds}
+          />
 
           {/* Main Content with Sidebar */}
           <div className="flex gap-8">
             {/* Filters Sidebar */}
-            <Filters />
+            <Filters onRefinementsChange={setSidebarRefinements} />
 
             {/* Results */}
             <div className="flex-1">
