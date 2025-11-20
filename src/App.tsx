@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { InstantSearch, Configure, useSearchBox } from 'react-instantsearch'
 import { searchClient, ALGOLIA_INDEX_NAME, SEARCH_CONFIG } from '@/lib/algolia/client'
 import { Header } from '@/components/layout/Header'

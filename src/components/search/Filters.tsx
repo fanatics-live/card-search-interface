@@ -40,11 +40,19 @@ function RefinementList({ attribute, title, limit = 10, searchable = false, tran
     transformItems,
   })
 
+  const prevRefinedValuesRef = React.useRef<string>('')
+
   // Notify parent when refinements change
   React.useEffect(() => {
     if (onRefinementsChange) {
       const refinedValues = items.filter(item => item.isRefined).map(item => item.value)
-      onRefinementsChange(attribute, refinedValues)
+      const refinedValuesStr = JSON.stringify(refinedValues)
+
+      // Only notify if values actually changed
+      if (refinedValuesStr !== prevRefinedValuesRef.current) {
+        prevRefinedValuesRef.current = refinedValuesStr
+        onRefinementsChange(attribute, refinedValues)
+      }
     }
   }, [items, attribute, onRefinementsChange])
 
@@ -95,15 +103,24 @@ interface FiltersProps {
 export function Filters({ onRefinementsChange }: FiltersProps = {}) {
   const { canRefine, refine } = useClearRefinements()
   const [refinements, setRefinements] = React.useState<{ [key: string]: string[] }>({})
+  const onRefinementsChangeRef = React.useRef(onRefinementsChange)
+
+  // Keep ref updated
+  React.useEffect(() => {
+    onRefinementsChangeRef.current = onRefinementsChange
+  }, [onRefinementsChange])
 
   const handleRefinementChange = React.useCallback((attribute: string, values: string[]) => {
     setRefinements(prev => {
       const updated = { ...prev, [attribute]: values }
-      // Notify parent with updated refinements
-      onRefinementsChange?.(updated)
       return updated
     })
-  }, [onRefinementsChange])
+  }, [])
+
+  // Notify parent when refinements change
+  React.useEffect(() => {
+    onRefinementsChangeRef.current?.(refinements)
+  }, [refinements])
 
   return (
     <aside className="w-64 flex-shrink-0">
