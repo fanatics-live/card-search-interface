@@ -73,11 +73,15 @@ export function SaveSearchModal({
   }, [isOpen, onClose])
 
   const handleSave = () => {
-    console.log('Saving search:', query, 'with filters:', filters)
+    const filtersToSave = includeFilters ? filters : undefined
+    console.log('Saving search:', query, 'with filters:', filtersToSave)
     setError('')
 
     try {
-      const filtersToSave = includeFilters ? filters : undefined
+      // Check if already saved before attempting
+      const alreadySaved = isSearchSaved(query, filtersToSave)
+      console.log('Already saved?', alreadySaved)
+
       const savedSearch = saveSearch(query, filtersToSave, enableNotifications)
       console.log('Search saved successfully:', savedSearch)
 
