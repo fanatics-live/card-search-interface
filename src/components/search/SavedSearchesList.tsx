@@ -52,7 +52,6 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
 
         // Reload searches to show updated counts
         setSavedSearches(getSavedSearches())
-        onUpdate?.()
       } catch (error) {
         console.error('Error checking for updates:', error)
       } finally {
