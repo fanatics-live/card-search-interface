@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import { isSearchSaved } from '@/lib/search/savedSearches'
@@ -19,7 +19,11 @@ export function SaveSearchButton({
   className,
 }: SaveSearchButtonProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const isSaved = isSearchSaved(query, filters)
+
+  // Memoize isSaved to prevent infinite loops
+  const isSaved = useMemo(() => {
+    return isSearchSaved(query, filters)
+  }, [query, filters])
 
   // Don't show if no query
   if (!query || query.trim().length === 0) {
