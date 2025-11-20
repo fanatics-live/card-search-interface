@@ -15,51 +15,60 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
   const [isChecking, setIsChecking] = useState(false)
   const hasRunRef = useRef(false)
 
-  // Load saved searches on mount
+  // Load saved searches on mount and mock new items count
   useEffect(() => {
-    setSavedSearches(getSavedSearches())
+    const searches = getSavedSearches()
+
+    // Mock new items count for testing (0-10)
+    const searchesWithMockData = searches.map(search => ({
+      ...search,
+      newItemsCount: Math.floor(Math.random() * 11) // Random number 0-10
+    }))
+
+    setSavedSearches(searchesWithMockData)
   }, [])
 
-  // Check for updates on mount ONLY
+  // Check for updates on mount ONLY - DISABLED FOR MOCKING
   useEffect(() => {
     // Prevent running twice in React strict mode
     if (hasRunRef.current) return
     hasRunRef.current = true
 
-    const checkForUpdates = async () => {
-      setIsChecking(true)
-      try {
-        const searches = getSavedSearches()
-        if (searches.length === 0) return
+    // DISABLED: Using mock data instead of real updates
+    // const checkForUpdates = async () => {
+    //   setIsChecking(true)
+    //   try {
+    //     const searches = getSavedSearches()
+    //     if (searches.length === 0) return
 
-        // Check all searches for updates
-        const updatedSearchIds = await checkAllSavedSearches(searches)
+    //     // Check all searches for updates
+    //     const updatedSearchIds = await checkAllSavedSearches(searches)
 
-        // Send Discord notifications for searches with new items
-        if (updatedSearchIds.length > 0) {
-          const updatedSearches = getSavedSearches()
-          for (const searchId of updatedSearchIds) {
-            const search = updatedSearches.find((s) => s.id === searchId)
-            if (search && search.discordWebhook && search.newItemsCount) {
-              await sendDiscordNotification(
-                search,
-                search.newItemsCount,
-                search.lastResultCount || 0
-              )
-            }
-          }
-        }
+    //     // Send Discord notifications for searches with new items
+    //     if (updatedSearchIds.length > 0) {
+    //       const updatedSearches = getSavedSearches()
+    //       for (const searchId of updatedSearchIds) {
+    //         const search = updatedSearches.find((s) => s.id === searchId)
+    //         if (search && search.discordWebhook && search.newItemsCount) {
+    //           await sendDiscordNotification(
+    //             search,
+    //             search.newItemsCount,
+    //             search.lastResultCount || 0
+    //           )
+    //         }
+    //       }
+    //     }
 
-        // Reload searches to show updated counts
-        setSavedSearches(getSavedSearches())
-      } catch (error) {
-        console.error('Error checking for updates:', error)
-      } finally {
-        setIsChecking(false)
-      }
-    }
+    //     // Reload searches to show updated counts
+    //     setSavedSearches(getSavedSearches())
+    //   } catch (error) {
+    //     console.error('Error checking for updates:', error)
+    //   } finally {
+    //     setIsChecking(false)
+    //   }
+    // }
 
-    checkForUpdates()
+    // checkForUpdates()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
