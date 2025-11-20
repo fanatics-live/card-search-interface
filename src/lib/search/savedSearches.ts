@@ -59,19 +59,24 @@ export function getSavedSearches(): SavedSearch[] {
  * Check if a search is already saved
  */
 export function isSearchSaved(query: string, filters?: SavedSearchFilters): boolean {
-  const searches = getSavedSearches()
-  const normalizedQuery = query.trim().toLowerCase()
+  try {
+    const searches = getSavedSearches()
+    const normalizedQuery = query.trim().toLowerCase()
 
-  return searches.some((search) => {
-    const queryMatches = search.query.toLowerCase() === normalizedQuery
+    return searches.some((search) => {
+      const queryMatches = search.query.toLowerCase() === normalizedQuery
 
-    // If no filters provided, just match query
-    if (!filters) return queryMatches
+      // If no filters provided, just match query
+      if (!filters) return queryMatches
 
-    // Compare filters if provided
-    const filtersMatch = JSON.stringify(search.filters || {}) === JSON.stringify(filters)
-    return queryMatches && filtersMatch
-  })
+      // Compare filters if provided
+      const filtersMatch = JSON.stringify(search.filters || {}) === JSON.stringify(filters)
+      return queryMatches && filtersMatch
+    })
+  } catch (error) {
+    console.error('Error checking if search is saved:', error)
+    return false
+  }
 }
 
 /**

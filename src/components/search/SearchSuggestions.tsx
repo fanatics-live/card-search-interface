@@ -49,7 +49,7 @@ export function SearchSuggestions({
       // Fetch popular searches from API
       const fetchPopularSearches = async () => {
         try {
-          const response = await fetch('http://localhost:3001/api/popular-queries')
+          const response = await fetch('http://localhost:3002/api/popular-queries')
           const data = await response.json()
 
           const popularSuggestions: Suggestion[] = data.queries.map((item: any) => ({

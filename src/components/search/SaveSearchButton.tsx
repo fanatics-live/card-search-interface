@@ -26,10 +26,16 @@ export function SaveSearchButton({
     return null
   }
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    console.log('Save button clicked for query:', query)
+    onClick()
+  }
+
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(

@@ -179,7 +179,8 @@ export function SearchBox({
           onFocus={handleFocus}
           placeholder={placeholder}
           className={cn(
-            'block w-full pl-11 pr-12 py-3 border border-gray-300 rounded-lg bg-transparent relative z-10',
+            'block w-full pl-11 py-3 border border-gray-300 rounded-lg bg-transparent relative z-10',
+            inputValue ? 'pr-24' : 'pr-12', // More padding when both buttons visible
             'text-gray-900 placeholder-gray-400',
             'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
             'transition-all duration-200',

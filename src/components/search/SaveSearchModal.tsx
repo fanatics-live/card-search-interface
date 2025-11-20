@@ -73,11 +73,13 @@ export function SaveSearchModal({
   }, [isOpen, onClose])
 
   const handleSave = () => {
+    console.log('Saving search:', query, 'with filters:', filters)
     setError('')
 
     try {
       const filtersToSave = includeFilters ? filters : undefined
       const savedSearch = saveSearch(query, filtersToSave, enableNotifications)
+      console.log('Search saved successfully:', savedSearch)
 
       // Save Discord webhook if provided
       if (discordWebhook.trim()) {
@@ -98,6 +100,7 @@ export function SaveSearchModal({
       setDiscordWebhook('')
       setShowDiscordInput(false)
     } catch (err) {
+      console.error('Error saving search:', err)
       setError(err instanceof Error ? err.message : 'Failed to save search')
     }
   }
