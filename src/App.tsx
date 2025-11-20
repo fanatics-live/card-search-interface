@@ -23,17 +23,41 @@ function SearchContent() {
   const handleSelectSavedSearch = (search: SavedSearch) => {
     console.log('Selecting saved search:', search.query, 'with filters:', search.filters)
 
-    // Clear all current filters first
+    // Step 1: Clear all current filters first
     clearRefinements() // Clears sidebar refinements
-    setSmartPillFilters('') // Clears smart pill filters
-    setActivePillIds([]) // Clears active pill state
 
-    // Execute the saved search query
+    // Step 2: Update the search query in the search box
     refine(search.query)
 
-    // TODO: Apply saved filters if they exist
-    // This would require restoring smart pills and sidebar filters
-    // For now, just clear everything and execute the query
+    // Step 3: Apply saved filters if they exist
+    if (search.filters) {
+      // Restore smart pills
+      if (search.filters.smartPills && search.filters.smartPills.length > 0) {
+        setActivePillIds(search.filters.smartPills)
+        console.log('Restored smart pills:', search.filters.smartPills)
+        // Note: The actual Algolia filter string will be rebuilt by SmartPills component
+        // when it sees the activePillIds change
+      } else {
+        setActivePillIds([])
+        setSmartPillFilters('')
+      }
+
+      // Restore sidebar filters
+      if (search.filters.sidebarFilters) {
+        setSidebarRefinements(search.filters.sidebarFilters)
+        console.log('Restored sidebar filters:', search.filters.sidebarFilters)
+        // Note: We need to programmatically apply these to Algolia's refinement lists
+        // This is complex - for now just update our state
+        // TODO: Need to trigger Algolia refinements programmatically
+      } else {
+        setSidebarRefinements({})
+      }
+    } else {
+      // No filters saved, clear everything
+      setActivePillIds([])
+      setSmartPillFilters('')
+      setSidebarRefinements({})
+    }
   }
 
   const handleSearchSaved = () => {
