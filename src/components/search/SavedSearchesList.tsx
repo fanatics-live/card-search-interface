@@ -13,25 +13,19 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([])
   const [showAll, setShowAll] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
-  const onUpdateRef = useRef(onUpdate)
+  const hasRunRef = useRef(false)
 
-  // Keep ref updated
+  // Load saved searches on mount
   useEffect(() => {
-    onUpdateRef.current = onUpdate
-  }, [onUpdate])
-
-  // Load saved searches
-  const loadSearches = () => {
-    const searches = getSavedSearches()
-    setSavedSearches(searches)
-  }
-
-  useEffect(() => {
-    loadSearches()
+    setSavedSearches(getSavedSearches())
   }, [])
 
   // Check for updates on mount ONLY
   useEffect(() => {
+    // Prevent running twice in React strict mode
+    if (hasRunRef.current) return
+    hasRunRef.current = true
+
     const checkForUpdates = async () => {
       setIsChecking(true)
       try {
@@ -57,8 +51,8 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
         }
 
         // Reload searches to show updated counts
-        loadSearches()
-        onUpdateRef.current?.()
+        setSavedSearches(getSavedSearches())
+        onUpdate?.()
       } catch (error) {
         console.error('Error checking for updates:', error)
       } finally {
@@ -73,7 +67,7 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
   const handleSelectSearch = (search: SavedSearch) => {
     // Mark as checked (clear badge)
     markAsChecked(search.id)
-    loadSearches()
+    setSavedSearches(getSavedSearches())
 
     // Execute the search
     onSelectSearch(search)
@@ -81,7 +75,7 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
 
   const handleRemoveSearch = (id: string) => {
     removeSavedSearch(id)
-    loadSearches()
+    setSavedSearches(getSavedSearches())
     onUpdate?.()
   }
 
