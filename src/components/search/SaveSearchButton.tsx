@@ -25,8 +25,8 @@ export function SaveSearchButton({
     return isSearchSaved(query, filters)
   }, [query, filters])
 
-  // Don't show if no query
-  if (!query || query.trim().length === 0) {
+  // Don't show if no query OR if already saved with these exact filters
+  if (!query || query.trim().length === 0 || isSaved) {
     return null
   }
 
@@ -44,15 +44,13 @@ export function SaveSearchButton({
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
         'flex items-center justify-center w-10 h-10 rounded-lg transition-colors',
-        isSaved
-          ? 'text-red-500 hover:text-red-600 hover:bg-red-50'
-          : 'text-gray-400 hover:text-red-500 hover:bg-gray-100',
+        'text-gray-400 hover:text-red-500 hover:bg-gray-100',
         className
       )}
-      title={isSaved ? 'Saved search' : 'Save this search'}
-      aria-label={isSaved ? 'Saved search' : 'Save this search'}
+      title="Save this search"
+      aria-label="Save this search"
     >
-      {isSaved || isHovered ? (
+      {isHovered ? (
         <HeartIconSolid className="w-6 h-6" />
       ) : (
         <HeartIcon className="w-6 h-6" />

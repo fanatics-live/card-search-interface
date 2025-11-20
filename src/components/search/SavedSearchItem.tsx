@@ -34,13 +34,12 @@ export function SavedSearchItem({ search, onSelect, onRemove }: SavedSearchItemP
           'cursor-pointer select-none',
           hasNewItems
             ? 'bg-blue-600 text-white border-blue-700 hover:bg-blue-700 shadow-md ring-2 ring-blue-300 animate-pulse'
+            : hasFilters
+            ? 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200'
             : 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200'
         )}
       >
-        {/* Star icon */}
-        <span className="text-base leading-none">⭐</span>
-
-        {/* Filter indicator */}
+        {/* Filter indicator - show ONLY when filters are present */}
         {hasFilters && (
           <FunnelIcon className="w-3.5 h-3.5" title="Has filters applied" />
         )}
