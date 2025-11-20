@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { InstantSearch, Configure, useSearchBox } from 'react-instantsearch'
+import { InstantSearch, Configure, useSearchBox, useClearRefinements } from 'react-instantsearch'
 import { searchClient, ALGOLIA_INDEX_NAME, SEARCH_CONFIG } from '@/lib/algolia/client'
 import { Header } from '@/components/layout/Header'
 import { SearchBox } from '@/components/search/SearchBox'
@@ -18,14 +18,22 @@ function SearchContent() {
   const [activePillIds, setActivePillIds] = useState<string[]>([])
   const [sidebarRefinements, setSidebarRefinements] = useState<{ [key: string]: string[] }>({})
   const { refine } = useSearchBox()
+  const { refine: clearRefinements } = useClearRefinements()
 
   const handleSelectSavedSearch = (search: SavedSearch) => {
-    // Execute the saved search
+    console.log('Selecting saved search:', search.query, 'with filters:', search.filters)
+
+    // Clear all current filters first
+    clearRefinements() // Clears sidebar refinements
+    setSmartPillFilters('') // Clears smart pill filters
+    setActivePillIds([]) // Clears active pill state
+
+    // Execute the saved search query
     refine(search.query)
 
     // TODO: Apply saved filters if they exist
     // This would require restoring smart pills and sidebar filters
-    // For now, just execute the query
+    // For now, just clear everything and execute the query
   }
 
   const handleSearchSaved = () => {
