@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { SavedSearchItem } from './SavedSearchItem'
 import { getSavedSearches, removeSavedSearch, markAsChecked } from '@/lib/search/savedSearches'
 import type { SavedSearch } from '@/lib/search/savedSearches'
@@ -13,6 +13,12 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([])
   const [showAll, setShowAll] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
+  const onUpdateRef = useRef(onUpdate)
+
+  // Keep ref updated
+  useEffect(() => {
+    onUpdateRef.current = onUpdate
+  }, [onUpdate])
 
   // Load saved searches
   const loadSearches = () => {
@@ -24,7 +30,7 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
     loadSearches()
   }, [])
 
-  // Check for updates on mount
+  // Check for updates on mount ONLY
   useEffect(() => {
     const checkForUpdates = async () => {
       setIsChecking(true)
@@ -52,7 +58,7 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
 
         // Reload searches to show updated counts
         loadSearches()
-        onUpdate?.()
+        onUpdateRef.current?.()
       } catch (error) {
         console.error('Error checking for updates:', error)
       } finally {
@@ -61,7 +67,8 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
     }
 
     checkForUpdates()
-  }, [onUpdate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSelectSearch = (search: SavedSearch) => {
     // Mark as checked (clear badge)

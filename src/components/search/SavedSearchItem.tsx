@@ -13,16 +13,18 @@ export function SavedSearchItem({ search, onSelect, onRemove }: SavedSearchItemP
   const hasDiscord = !!search.discordWebhook
 
   return (
-    <button
-      onClick={() => onSelect(search)}
+    <div
       className={cn(
         'group w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all',
-        'hover:bg-gray-50 text-left',
+        'hover:bg-gray-50 cursor-pointer',
         hasNewItems && 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
       )}
     >
-      {/* Left: Search query and badges */}
-      <div className="flex items-center gap-2 flex-1 min-w-0">
+      {/* Left: Search query and badges - clickable area */}
+      <div
+        onClick={() => onSelect(search)}
+        className="flex items-center gap-2 flex-1 min-w-0"
+      >
         {/* Star icon */}
         <span className="text-yellow-500 flex-shrink-0">⭐</span>
 
@@ -64,6 +66,6 @@ export function SavedSearchItem({ search, onSelect, onRemove }: SavedSearchItemP
       >
         <XMarkIcon className="w-4 h-4" />
       </button>
-    </button>
+    </div>
   )
 }
