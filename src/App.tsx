@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { InstantSearch, Configure, useSearchBox } from 'react-instantsearch'
 import { searchClient, ALGOLIA_INDEX_NAME, SEARCH_CONFIG } from '@/lib/algolia/client'
 import { Header } from '@/components/layout/Header'
@@ -32,10 +32,11 @@ function SearchContent() {
   }
 
   // Build current filters for save functionality
-  const currentFilters: SavedSearchFilters = {
+  // Memoize to prevent creating new object reference on every render
+  const currentFilters: SavedSearchFilters = useMemo(() => ({
     smartPills: [], // TODO: Track active smart pill IDs
     sidebarFilters: {}, // TODO: Track active sidebar filters
-  }
+  }), [])
 
   return (
     <>

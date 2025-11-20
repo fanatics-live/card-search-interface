@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { useSearchBox } from 'react-instantsearch'
 import { useDebouncedCallback } from 'use-debounce'
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline'
@@ -151,6 +151,10 @@ export function SearchBox({
     setHighlightedIndex(index)
   }
 
+  const handleOpenSaveModal = useCallback(() => {
+    setSaveModalOpen(true)
+  }, [])
+
   return (
     <form onSubmit={handleSubmit} className={cn('relative', className)}>
       <div className="relative">
@@ -193,13 +197,13 @@ export function SearchBox({
         />
 
         {/* Right side buttons container */}
-        <div className="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2 gap-1 z-20">
           {/* Save Search Button */}
           {inputValue && (
             <SaveSearchButton
               query={inputValue}
               filters={currentFilters}
-              onClick={() => setSaveModalOpen(true)}
+              onClick={handleOpenSaveModal}
             />
           )}
 
