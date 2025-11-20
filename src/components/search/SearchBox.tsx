@@ -4,16 +4,23 @@ import { useDebouncedCallback } from 'use-debounce'
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils/cn'
 import { SearchSuggestions } from './SearchSuggestions'
+import { SaveSearchButton } from './SaveSearchButton'
+import { SaveSearchModal } from './SaveSearchModal'
 import { addRecentSearch } from '@/lib/search/recentSearches'
+import type { SavedSearchFilters } from '@/lib/search/savedSearches'
 
 interface SearchBoxProps {
   placeholder?: string
   className?: string
+  currentFilters?: SavedSearchFilters
+  onSearchSaved?: () => void
 }
 
 export function SearchBox({
   placeholder = 'Search for players, teams, cards...',
   className,
+  currentFilters,
+  onSearchSaved,
 }: SearchBoxProps) {
   const { query, refine } = useSearchBox()
   const [inputValue, setInputValue] = useState(query)
@@ -21,6 +28,7 @@ export function SearchBox({
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [compositionValue, setCompositionValue] = useState('') // For inline autocomplete
+  const [saveModalOpen, setSaveModalOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Debounce search to reduce API calls
@@ -183,20 +191,32 @@ export function SearchBox({
           spellCheck="false"
         />
 
-        {/* Clear Button */}
-        {inputValue && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className={cn(
-              'absolute inset-y-0 right-0 pr-4 flex items-center',
-              'text-gray-400 hover:text-gray-600 transition-colors'
-            )}
-            aria-label="Clear search"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        )}
+        {/* Right side buttons container */}
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">
+          {/* Save Search Button */}
+          {inputValue && (
+            <SaveSearchButton
+              query={inputValue}
+              filters={currentFilters}
+              onClick={() => setSaveModalOpen(true)}
+            />
+          )}
+
+          {/* Clear Button */}
+          {inputValue && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className={cn(
+                'flex items-center justify-center w-10 h-10 rounded-lg',
+                'text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors'
+              )}
+              aria-label="Clear search"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search Suggestions */}
@@ -208,6 +228,17 @@ export function SearchBox({
         onSuggestionsUpdate={handleSuggestionsUpdate}
         highlightedIndex={highlightedIndex}
         onHighlightChange={handleHighlightChange}
+      />
+
+      {/* Save Search Modal */}
+      <SaveSearchModal
+        isOpen={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        query={inputValue}
+        filters={currentFilters}
+        onSaved={() => {
+          onSearchSaved?.()
+        }}
       />
     </form>
   )
