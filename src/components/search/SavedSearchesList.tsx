@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { SavedSearchItem } from './SavedSearchItem'
 import { getSavedSearches, removeSavedSearch, markAsChecked } from '@/lib/search/savedSearches'
 import type { SavedSearch } from '@/lib/search/savedSearches'
-import { checkAllSavedSearches, sendDiscordNotification } from '@/lib/search/searchNotifications'
 
 interface SavedSearchesListProps {
   onSelectSearch: (search: SavedSearch) => void
@@ -12,7 +11,6 @@ interface SavedSearchesListProps {
 export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesListProps) {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([])
   const [showAll, setShowAll] = useState(false)
-  const [isChecking, setIsChecking] = useState(false)
   const hasRunRef = useRef(false)
 
   // Load saved searches on mount and mock new items count
@@ -99,7 +97,7 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
     <div className="mb-6">
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm font-medium text-gray-500 mr-2">
-          {isChecking ? 'Checking saved searches...' : 'Saved:'}
+          Saved:
         </span>
         {displayedSearches.map((search) => (
           <SavedSearchItem
