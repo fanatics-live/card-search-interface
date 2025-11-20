@@ -1,4 +1,5 @@
-import { XMarkIcon, BellIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, BellIcon, FunnelIcon } from '@heroicons/react/24/outline'
+import { motion } from 'framer-motion'
 import type { SavedSearch } from '@/lib/search/savedSearches'
 import { cn } from '@/lib/utils/cn'
 
@@ -12,60 +13,71 @@ export function SavedSearchItem({ search, onSelect, onRemove }: SavedSearchItemP
   const hasNewItems = search.newItemsCount && search.newItemsCount > 0
   const hasDiscord = !!search.discordWebhook
 
+  // Check if this search has any filters applied
+  const hasFilters =
+    (search.filters?.smartPills && search.filters.smartPills.length > 0) ||
+    (search.filters?.sidebarFilters?.status && search.filters.sidebarFilters.status.length > 0) ||
+    (search.filters?.sidebarFilters?.marketplace && search.filters.sidebarFilters.marketplace.length > 0) ||
+    (search.filters?.sidebarFilters?.gradingService && search.filters.sidebarFilters.gradingService.length > 0)
+
   return (
-    <div
-      className={cn(
-        'group w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all',
-        'hover:bg-gray-50 cursor-pointer',
-        hasNewItems && 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
-      )}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="inline-flex items-center group relative"
     >
-      {/* Left: Search query and badges - clickable area */}
-      <div
+      <button
         onClick={() => onSelect(search)}
-        className="flex items-center gap-2 flex-1 min-w-0"
+        className={cn(
+          'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150',
+          'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+          'cursor-pointer select-none',
+          hasNewItems
+            ? 'bg-blue-600 text-white border-blue-700 hover:bg-blue-700 shadow-md ring-2 ring-blue-300 animate-pulse'
+            : 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200'
+        )}
       >
         {/* Star icon */}
-        <span className="text-yellow-500 flex-shrink-0">⭐</span>
+        <span className="text-base leading-none">⭐</span>
+
+        {/* Filter indicator */}
+        {hasFilters && (
+          <FunnelIcon className="w-3.5 h-3.5" title="Has filters applied" />
+        )}
 
         {/* Query text */}
-        <span className="font-medium text-gray-900 truncate">{search.query}</span>
+        <span>{search.query}</span>
 
         {/* Discord badge */}
         {hasDiscord && (
-          <span
-            className="flex-shrink-0 text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium"
-            title="Discord notifications enabled"
-          >
-            <BellIcon className="w-3 h-3 inline-block -mt-0.5" /> Discord
-          </span>
+          <BellIcon className="w-3.5 h-3.5" title="Discord notifications enabled" />
         )}
 
-        {/* New items badge */}
+        {/* New items count badge */}
         {hasNewItems && (
-          <span className="flex-shrink-0 flex items-center gap-1 text-xs px-2 py-1 bg-blue-600 text-white rounded-full font-medium animate-pulse">
-            <BellIcon className="w-3 h-3" />
-            {search.newItemsCount} new
+          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-semibold bg-white/20 text-white">
+            {search.newItemsCount}
           </span>
         )}
-      </div>
+      </button>
 
-      {/* Right: Remove button */}
+      {/* Remove button - appears on hover */}
       <button
         onClick={(e) => {
           e.stopPropagation()
           onRemove(search.id)
         }}
         className={cn(
-          'ml-2 flex-shrink-0 p-1.5 rounded-md transition-colors',
-          'text-gray-400 hover:text-gray-600 hover:bg-gray-200',
-          'opacity-0 group-hover:opacity-100'
+          'absolute -right-2 -top-2 w-5 h-5 rounded-full bg-red-500 text-white',
+          'flex items-center justify-center',
+          'opacity-0 group-hover:opacity-100 transition-opacity',
+          'hover:bg-red-600 shadow-md'
         )}
         title="Remove saved search"
         aria-label="Remove saved search"
       >
-        <XMarkIcon className="w-4 h-4" />
+        <XMarkIcon className="w-3 h-3" />
       </button>
-    </div>
+    </motion.div>
   )
 }

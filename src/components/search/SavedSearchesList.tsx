@@ -87,29 +87,11 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
   const hasMore = savedSearches.length > 5
 
   return (
-    <div className="mb-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-            Your Searches ({savedSearches.length})
-          </h3>
-          {isChecking && (
-            <span className="text-xs text-gray-500">Checking for updates...</span>
-          )}
-        </div>
-        {hasMore && (
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-          >
-            {showAll ? 'Show less' : `View all (${savedSearches.length})`}
-          </button>
-        )}
-      </div>
-
-      {/* List */}
-      <div className="p-2 space-y-1">
+    <div className="mb-6">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-sm font-medium text-gray-500 mr-2">
+          {isChecking ? 'Checking saved searches...' : 'Saved:'}
+        </span>
         {displayedSearches.map((search) => (
           <SavedSearchItem
             key={search.id}
@@ -118,14 +100,15 @@ export function SavedSearchesList({ onSelectSearch, onUpdate }: SavedSearchesLis
             onRemove={handleRemoveSearch}
           />
         ))}
+        {hasMore && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+          >
+            {showAll ? 'Show less' : `+${savedSearches.length - 5} more`}
+          </button>
+        )}
       </div>
-
-      {/* Footer hint */}
-      {savedSearches.some((s) => !s.newItemsCount || s.newItemsCount === 0) && (
-        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
-          💡 Tip: We check for new items every time you visit. Click a search to view results.
-        </div>
-      )}
     </div>
   )
 }
