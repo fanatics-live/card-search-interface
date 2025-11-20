@@ -31,9 +31,10 @@ interface RefinementListProps {
   searchable?: boolean
   transformItems?: (items: any[]) => any[]
   onRefinementsChange?: (attribute: string, refinedValues: string[]) => void
+  externalRefinements?: string[] // Allow parent to control refinements
 }
 
-function RefinementList({ attribute, title, limit = 10, searchable = false, transformItems, onRefinementsChange }: RefinementListProps) {
+function RefinementList({ attribute, title, limit = 10, searchable = false, transformItems, onRefinementsChange, externalRefinements }: RefinementListProps) {
   const { items, refine, searchForItems } = useRefinementList({
     attribute,
     limit,
@@ -41,6 +42,32 @@ function RefinementList({ attribute, title, limit = 10, searchable = false, tran
   })
 
   const prevRefinedValuesRef = React.useRef<string>('')
+  const hasAppliedExternalRef = React.useRef(false)
+
+  // Apply external refinements when provided
+  React.useEffect(() => {
+    if (externalRefinements && externalRefinements.length > 0 && items.length > 0 && !hasAppliedExternalRef.current) {
+      hasAppliedExternalRef.current = true
+
+      // Get currently refined values
+      const currentlyRefined = items.filter(item => item.isRefined).map(item => item.value)
+
+      // Refine each external value that isn't already refined
+      externalRefinements.forEach(value => {
+        if (!currentlyRefined.includes(value)) {
+          const item = items.find(i => i.value === value)
+          if (item && !item.isRefined) {
+            refine(value)
+          }
+        }
+      })
+    }
+  }, [externalRefinements, items, refine])
+
+  // Reset the flag when external refinements change
+  React.useEffect(() => {
+    hasAppliedExternalRef.current = false
+  }, [externalRefinements])
 
   // Notify parent when refinements change
   React.useEffect(() => {
@@ -98,9 +125,10 @@ function RefinementList({ attribute, title, limit = 10, searchable = false, tran
 
 interface FiltersProps {
   onRefinementsChange?: (refinements: { [key: string]: string[] }) => void
+  externalRefinements?: { [key: string]: string[] } // Allow parent to control refinements
 }
 
-export function Filters({ onRefinementsChange }: FiltersProps = {}) {
+export function Filters({ onRefinementsChange, externalRefinements }: FiltersProps = {}) {
   const { canRefine, refine } = useClearRefinements()
   const [refinements, setRefinements] = React.useState<{ [key: string]: string[] }>({})
   const onRefinementsChangeRef = React.useRef(onRefinementsChange)
@@ -147,6 +175,7 @@ export function Filters({ onRefinementsChange }: FiltersProps = {}) {
             title="Status"
             transformItems={statusTransform}
             onRefinementsChange={handleRefinementChange}
+            externalRefinements={externalRefinements?.status}
           />
 
           {/* Marketplace */}
@@ -155,6 +184,7 @@ export function Filters({ onRefinementsChange }: FiltersProps = {}) {
             title="Marketplace"
             transformItems={marketplaceTransform}
             onRefinementsChange={handleRefinementChange}
+            externalRefinements={externalRefinements?.marketplace}
           />
 
           {/* Grading Service */}
@@ -165,6 +195,7 @@ export function Filters({ onRefinementsChange }: FiltersProps = {}) {
             searchable={true}
             transformItems={gradingServiceTransform}
             onRefinementsChange={handleRefinementChange}
+            externalRefinements={externalRefinements?.gradingService}
           />
         </div>
       </div>

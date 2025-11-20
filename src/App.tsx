@@ -111,12 +111,16 @@ function SearchContent() {
           <SmartPills
             onFiltersChange={setSmartPillFilters}
             onActivePillsChange={setActivePillIds}
+            externalActivePillIds={activePillIds}
           />
 
           {/* Main Content with Sidebar */}
           <div className="flex gap-8">
             {/* Filters Sidebar */}
-            <Filters onRefinementsChange={setSidebarRefinements} />
+            <Filters
+              onRefinementsChange={setSidebarRefinements}
+              externalRefinements={sidebarRefinements}
+            />
 
             {/* Results */}
             <div className="flex-1">

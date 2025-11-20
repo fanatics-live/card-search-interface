@@ -10,15 +10,42 @@ const API_URL = import.meta.env.VITE_API_URL || ''
 interface SmartPillsProps {
   onFiltersChange?: (filters: string) => void
   onActivePillsChange?: (activePillIds: string[]) => void
+  externalActivePillIds?: string[] // Allow parent to control active pills
 }
 
-export function SmartPills({ onFiltersChange, onActivePillsChange }: SmartPillsProps) {
+export function SmartPills({ onFiltersChange, onActivePillsChange, externalActivePillIds }: SmartPillsProps) {
   const { query, refine } = useSearchBox()
   const { results } = useInstantSearch()
   const [pills, setPills] = useState<SmartPillType[]>([])
   const [activePillIds, setActivePillIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [baseQuery, setBaseQuery] = useState('')
+
+  // Sync with external active pill IDs when provided
+  useEffect(() => {
+    if (externalActivePillIds !== undefined) {
+      const newActivePillIds = new Set(externalActivePillIds)
+      setActivePillIds(newActivePillIds)
+
+      // Rebuild filters for the restored pills
+      if (pills.length > 0 && newActivePillIds.size > 0) {
+        const activeFilters: string[] = []
+        pills.forEach((pill) => {
+          if (newActivePillIds.has(pill.id)) {
+            const filter = buildAlgoliaFilter(pill)
+            if (filter) {
+              activeFilters.push(filter)
+            }
+          }
+        })
+
+        const combinedFilters = activeFilters.length > 0 ? activeFilters.join(' AND ') : ''
+        if (onFiltersChange) {
+          onFiltersChange(combinedFilters)
+        }
+      }
+    }
+  }, [externalActivePillIds, pills])
 
   // Fetch smart pills from API
   useEffect(() => {
